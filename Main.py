@@ -7,6 +7,7 @@ from sklearn.externals import joblib
 import pandas as pd
 from google.cloud import storage
 
+#Realizamos el Entrenamiento del Modelo
 rng = 1
 boston = load_boston()
 y = boston['target']
@@ -28,14 +29,18 @@ clf = GridSearchCV(xgb_model,
 clf.fit(X,y)
 print(clf.best_score_)
 print(clf.best_params_)
+
+#Guardamos el modelo entrenado como archivo joblib en local
 joblib.dump(clf, 'Boston_Model.joblib')
 
+#Copiamos el modelo generado al Storage que creamos con nombre "boston_model"
 client = storage.Client(project='mlserverless')
 bucket_name = "boston_model"
 bucket = client.get_bucket(bucket_name)
 blob = bucket.blob('Boston_Model.joblib')
 blob.upload_from_filename('Boston_Model.joblib')
 
+#Creamos JSON que será input para realizar una predicción
 x0 = ['{:.2f}'.format(i) for i in X[0]]
 x0 = pd.Series(x0)
 with open("input.json", "w") as myfile:
